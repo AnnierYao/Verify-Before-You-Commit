@@ -43,6 +43,16 @@ After downloading, select a directory under `benchmark_data/datasets/<split>/dat
 
 Give the agent the task instruction and the perturbed file, while keeping `manifest.json` and the original file on the evaluator side. The scoring scripts in `benchmark_data/eval_scripts/` are organized by split; further reproduction instructions will be added to this repository.
 
+## Implementation and evaluation settings
+
+The paper reports three model stacks (Opus 4.6, GLM-5, and Qwen3.5:27B) under a common Claude Code agent interface. Each is evaluated with the original task instruction (vanilla), a generic audit reminder (audit-simple), and an explicit coverage/plausibility/reconciliation checklist (audit-first). The complete prompt text and metric definitions are in the paper.
+
+The released `eval_scripts/` use Python's standard library for trace parsing, manifest matching, and metric computation. They do not require NLTK, ROUGE, or LM Evaluation Harness. Agent execution uses the Claude Agent SDK; the spreadsheet runner also uses `pandas.read_excel` to prepare a workbook preview. The runner's model is selected through `ANTHROPIC_MODEL` when that environment variable is set. These are implementation dependencies, not additional evaluation models.
+
+The file-only reference validator uses fixed rules: a negative value in a non-negative column, a z-score above 3, an upper IQR fence of `Q3 + 1.5 * IQR`, or a modified MAD z-score above 3.5 for range defects; duplicate-row detection for duplication; a temporal gap above 2.5 times the median interval, a sequential-index jump above twice the typical step, or a missing referenced file for missing-block defects; and a summary discrepancy above 1% for reconciliation. The exact manifest anchors and perturbation parameters are stored per task.
+
+The current release does not contain a frozen environment file or a complete agent-run configuration. Exact historical package versions and generation settings should therefore not be inferred from the currently installed packages or SDK defaults.
+
 ## Provenance
 
 The splits derive from DaBench, SpreadsheetBench, and GDPval. Their redistribution terms differ; see the [dataset card](https://huggingface.co/datasets/anonymous-structured-agent/structured-file-audit-benchmark) for source attribution and licensing details.
